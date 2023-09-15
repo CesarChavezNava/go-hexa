@@ -1,11 +1,10 @@
 package courses
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	mooc "gohex.com/m/internal/platform"
+	mooc "gohex.com/m/internal"
 )
 
 type createRequest struct {
@@ -14,7 +13,7 @@ type createRequest struct {
 	Duration string `json:"duration" binding:"required"`
 }
 
-func CreateHandler() gin.HandlerFunc {
+func CreateHandler(courseRepository mooc.CourseRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req createRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -23,15 +22,11 @@ func CreateHandler() gin.HandlerFunc {
 		}
 
 		course := mooc.NewCourse(req.Id, req.Name, req.Duration)
-		if err := Save(ctx, course); err != nil {
+		if err := courseRepository.Save(ctx, course); err != nil {
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		ctx.Status(http.StatusCreated)
 	}
-}
-
-func Save(ctx context.Context, course mooc.Course) error {
-	return nil
 }
